@@ -3,14 +3,16 @@ import {
 	updateContainer
 } from 'react-reconciler/src/fiberReconciler';
 import { ReactElementType } from 'shared/ReactTypes';
-import { Container } from './hostConfig';
+import { Container } from 'hostConfig';
+import { initEvent } from './SyntheticEvent';
 
 // ReactDOM.createRoot(root).render(<app/>)
 export function createRoot(container: Container) {
 	const root = createContainer(container);
 	return {
 		render(element: ReactElementType) {
-			updateContainer(element, root);
+			initEvent(container, 'click');
+			return updateContainer(element, root);
 		}
 	};
 }
