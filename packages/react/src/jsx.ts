@@ -27,10 +27,14 @@ const ReactElement = function (
 };
 
 export function isValidElement(object: any) {
-	return (typeof object === 'object' && object !== null && object.$$typeof === REACT_ELEMENT_TYPE);
+	return (
+		typeof object === 'object' &&
+		object !== null &&
+		object.$$typeof === REACT_ELEMENT_TYPE
+	);
 }
 
-export const jsx = (type: ElementType, config: any, ...args: any) => {
+export const jsx = (type: ElementType, config: any, ...rest: any) => {
 	let key: Key = null;
 	const props: Props = {};
 	let ref: Ref = null;
@@ -48,22 +52,49 @@ export const jsx = (type: ElementType, config: any, ...args: any) => {
 			}
 			continue;
 		}
+		// config原型上的属性不做处理
 		if ({}.hasOwnProperty.call(config, prop)) {
 			props[prop] = val;
 		}
 	}
 
-	const argsLeng = args.length;
+	const argsLeng = rest.length;
 	if (argsLeng) {
-		// [child] [child, child]
+		// [child]
 		if (argsLeng === 1) {
-			props.children = args[0];
+			props.children = rest[0];
 		} else {
-			props.children = args;
+			// [child, child, child]
+			props.children = rest;
 		}
 	}
 
 	return ReactElement(type, key, ref, props);
 };
 
-export const jsxDEV = jsx;
+export const jsxDEV = (type: ElementType, config: any) => {
+	let key: Key = null;
+	const props: Props = {};
+	let ref: Ref = null;
+	for (const prop in config) {
+		const val = config[prop];
+		if (prop === 'key') {
+			if (val !== undefined) {
+				key = '' + val;
+			}
+			continue;
+		}
+		if (prop === 'ref') {
+			if (val !== undefined) {
+				ref = val;
+			}
+			continue;
+		}
+		// config原型上的属性不做处理
+		if ({}.hasOwnProperty.call(config, prop)) {
+			props[prop] = val;
+		}
+	}
+
+	return ReactElement(type, key, ref, props);
+};

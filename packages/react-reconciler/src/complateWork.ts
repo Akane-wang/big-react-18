@@ -6,9 +6,13 @@ import {
 	createInstance,
 	createTextInstance
 } from 'hostConfig';
-import { FunctionComponent, HostComponent, HostRoot, HostText } from './workTags';
+import {
+	FunctionComponent,
+	HostComponent,
+	HostRoot,
+	HostText
+} from './workTags';
 import { updateFiberProps } from 'react-dom/src/SyntheticEvent';
-
 
 // 标记更新
 function markUpdate(fiber: FiberNode) {
@@ -40,7 +44,7 @@ export const complateWork = (wip: FiberNode) => {
 				// update
 				const oldText = current.memoizedProps.content;
 				const newText = newProps.content;
-				if(oldText !== newText) {
+				if (oldText !== newText) {
 					markUpdate(wip);
 				}
 			} else {

@@ -1,9 +1,9 @@
-import { ReactElementType } from "shared/ReactTypes";
+import { ReactElementType } from 'shared/ReactTypes';
 // @ts-ignore
-import ReactDOM from "react-dom";
+import ReactDOM from 'react-dom';
 
 export function renderIntoDocument(element: ReactElementType) {
-    const div = document.createElement('div');
-    // element
-    return ReactDOM.createRoot(div).render(element);
+	const div = document.createElement('div');
+	// element
+	return ReactDOM.createRoot(div).render(element);
 }
