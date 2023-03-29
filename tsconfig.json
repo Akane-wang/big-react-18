@@ -13,13 +13,13 @@
 		"isolatedModules": true,
 		"esModuleInterop": true,
 		"noEmit": true,
-		"noUnusedLocals": false,
-		"noUnusedParameters": false,
+		"noUnusedLocals": false, // 忽略没有用上的定义
+		"noUnusedParameters": false, // 忽略未使用的函数参数
 		"noImplicitReturns": false,
 		"skipLibCheck": true,
 		"baseUrl": "./packages", // typescript的基础入口
 		"paths": {
-			"hostConfig": ["./react-dom/src/hostConfig.ts"]
+			"hostConfig": ["./react-dom/src/hostConfig.ts"] // 对应代码类型检查下的hostConfig
 		}
 	}
 }

@@ -1,5 +1,7 @@
 // vite 在开发环境运行速度快
 // 与rollup是兼容的
+
+// 调用demo的命令添加--force是为了重新预编译react, react-dom相关代码
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import replace from '@rollup/plugin-replace';

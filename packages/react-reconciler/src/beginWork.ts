@@ -1,3 +1,13 @@
+/**
+ * 实现host相关节点的beginWork
+ * 1.HostRoot
+ * 计算状态的最新值，创建子fiberNode
+ * 2.HostComponent
+ * 创建子fiberNode
+ * 3.HostText
+ * 性能优化：
+ * 构建好离屏DOM树，再执行一次操作如Placement等
+ */
 import { ReactElementType } from 'shared/ReactTypes';
 import { mountChildFibers, reconcileChildFibers } from './childFibers';
 import { FiberNode } from './fiber';
@@ -32,7 +42,7 @@ export const beginWork = (wip: FiberNode) => {
 };
 
 function updateFunctionComponent(wip: FiberNode) {
-	const nextChildren = renderWidthHooks(wip);
+	const nextChildren = renderWidthHooks(wip); // 执行FunctionComponent的type,拿到函数组件的执行结果
 	reconcileChildren(wip, nextChildren);
 	return wip.child;
 }
@@ -42,7 +52,7 @@ function updateHostRoot(wip: FiberNode) {
 	const pending = updateQueue.shared.pending;
 	updateQueue.shared.pending = null;
 	const { memoizedState } = processUpdateQueue(baseState, pending);
-	wip.memoizedState = memoizedState;
+	wip.memoizedState = memoizedState; // ReactElement
 	const nextChildren = wip.memoizedState;
 	reconcileChildren(wip, nextChildren);
 	return wip.child;

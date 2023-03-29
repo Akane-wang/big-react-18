@@ -20,23 +20,30 @@ import {
 	HostRoot,
 	HostText
 } from './workTags';
-let nextEffect: FiberNode | null = null;
+let nextEffect: FiberNode | null = null; // 指向下一个需要执行的effect
+/**
+ *
+ * @param finishedWork
+ */
 export const commitMutationEffects = (finishedWork: FiberNode) => {
 	nextEffect = finishedWork;
 	while (nextEffect !== null) {
 		// 向下遍历
 		const child: FiberNode | null = nextEffect.child;
+		// nextEffect的子孙节点有Mutation阶段需要执行的操作 && 有子孙节点
 		if ((nextEffect.subtreeFlags & MutationMask) != NoFlags && child !== null) {
 			nextEffect = child;
 		} else {
-			// 向上遍历 DFS
+			// （1.已经找到底了 || 包含flags）向上遍历 DFS(深度优先遍历)
 			up: while (nextEffect !== null) {
 				commitMutationEffectsOnFiber(nextEffect);
 				const sibling: FiberNode | null = nextEffect.sibling;
+				// 兄弟存在就找兄弟
 				if (sibling !== null) {
 					nextEffect = sibling;
 					break up;
 				}
+				// 如果找到底了就往上
 				nextEffect = nextEffect.return;
 			}
 		}
@@ -44,10 +51,11 @@ export const commitMutationEffects = (finishedWork: FiberNode) => {
 };
 
 const commitMutationEffectsOnFiber = (finishedWork: FiberNode) => {
+	// 当前finishedWork是存在flags的节点
 	const flags = finishedWork.flags;
 	if ((flags && Placement) !== NoFlags) {
 		commitPlacement(finishedWork);
-		finishedWork.flags &= ~Placement;
+		finishedWork.flags &= ~Placement; // 将Placement从flags中移除，因为已经处理过placement相关代码了
 	}
 	// flags update
 	if ((flags && Update) !== NoFlags) {
@@ -131,6 +139,10 @@ function commitNestedComponent(
 	}
 }
 
+/**
+ * 拿到父级DOM节点，拿到要插入的DOM节点，将要插入的DOM节点插入到父级中
+ * @param finishedWork
+ */
 const commitPlacement = (finishedWork: FiberNode) => {
 	// finishedWork ~~ DOM
 	if (__DEV__) {
@@ -186,7 +198,7 @@ function insertOrAppendPlacementNodeIntoContainer(
 	hostParent: Container,
 	before?: Instance
 ) {
-	// fiber host
+	// 期望的tag类型：fiber host
 	if (finishedWork.tag === HostComponent || finishedWork.tag === HostText) {
 		if (before) {
 			insertChildToContainer(finishedWork.stateNode, hostParent, before);
@@ -206,7 +218,14 @@ function insertOrAppendPlacementNodeIntoContainer(
 	}
 }
 
+/**
+ * 获取宿主环境的父级
+ * 两种情况，一种是div这种原生节点，一种是直接宿主父级，比如root节点这种，其他的就是要往上找
+ * @param fiber
+ * @returns
+ */
 function getHostParent(fiber: FiberNode): Container | null {
+	// 执行一个向上遍历的过程
 	let parent = fiber.return;
 	while (parent) {
 		const parentTag = parent.tag;
@@ -217,8 +236,10 @@ function getHostParent(fiber: FiberNode): Container | null {
 		if (parentTag === HostRoot) {
 			return (parent.stateNode as FiberRootNode).container;
 		}
+		// 否则就往上找
 		parent = parent.return;
 	}
+	// 实在找不着就throw Error
 	if (__DEV__) {
 		console.warn('未找到host parent');
 	}

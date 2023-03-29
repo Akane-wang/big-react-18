@@ -1,10 +1,11 @@
 import { beginWork } from './beginWork';
+import { commitMutationEffects } from './commitWork';
 import { complateWork } from './complateWork';
 import { createWorkInProgress, FiberNode, FiberRootNode } from './fiber';
 import { MutationMask, NoFlags } from './fiberFlags';
 import { HostRoot } from './workTags';
 
-let workInProgress: FiberNode | null = null;
+let workInProgress: FiberNode | null = null; // current, workInProgress，双缓冲技术之一分支
 
 function prepareFreshStack(root: FiberRootNode) {
 	workInProgress = createWorkInProgress(root.current, {});
@@ -12,11 +13,11 @@ function prepareFreshStack(root: FiberRootNode) {
 
 // 在fiber中调度update
 export function scheduleUpdateOnFiber(fiber: FiberNode) {
-	const root = markUpdateFromFiberToRoot(fiber);
-	renderRoot(root);
+	const root = markUpdateFromFiberToRoot(fiber); // 拿到根节点
+	renderRoot(root); // 从根节点开始更新
 }
 
-// 接受当前的fiber
+// 接受fiberNode, 找到根节点RootFiberNode并返回
 function markUpdateFromFiberToRoot(fiber: FiberNode) {
 	let node = fiber;
 	let parent = node.return;
@@ -25,18 +26,22 @@ function markUpdateFromFiberToRoot(fiber: FiberNode) {
 		parent = node.return;
 	}
 	if ((node.tag = HostRoot)) {
-		return node.stateNode;
+		return node.stateNode; // 格式参考（docs/images/rootFiberNode-fiberNode-指向关系.jpg）
 	}
 	return null;
 }
+
 function renderRoot(root: FiberRootNode) {
 	// 初始化
+	prepareFreshStack(root);
 	do {
 		try {
 			workLoop();
 			break;
 		} catch (e) {
-			console.warn('workLoop错误', e);
+			if (__DEV__) {
+				console.warn('workLoop错误', e);
+			}
 			workInProgress = null;
 		}
 	} while (true);
@@ -61,14 +66,17 @@ function commitRoot(root: FiberRootNode) {
 	// 重置
 	root.finishWork = null;
 	// 判断是否存在三个子阶段需要执行的操作
-	// root flags root subtreeFlags
+	// root的flags（root本身是否有副作用，是否操作增删改）中和root的subtreeFlags（root的子孙是否有副作用，是否操作增删改之类的）中是否包含了Mutation阶段需要执行的一些操作
 	const subtreeHasEffect =
 		(finishedWork.subtreeFlags & MutationMask) !== NoFlags;
 	const rootHasEffect = (finishedWork.flags & MutationMask) !== NoFlags;
 	if (subtreeHasEffect || rootHasEffect) {
+		// 如果有，则
 		// beforeMutaion
 		// mutation Placement
-		root.current = finishedWork;
+		commitMutationEffects(finishedWork);
+		// （本次更新要执行的commit阶段的任务：fiber树的切换，执行Placement对应操作，介于mutation和layout之间）
+		root.current = finishedWork; // finishedWork是本次更新生成的workInProgressFiber树
 		// layout
 	} else {
 		root.current = finishedWork;
@@ -104,6 +112,4 @@ function complateUnitOfWork(fiber: FiberNode) {
 		node = node.return;
 		workInProgress = node;
 	} while (node !== null);
-	{
-	}
 }

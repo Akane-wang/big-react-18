@@ -1,5 +1,5 @@
 import { FiberNode } from './fiber';
-import internals from 'shared/internals';
+import internals from 'shared/internals'; // 内部数据共享层
 import { Dispatcher, Dispatch } from 'react/src/currentDispatcher';
 import {
 	createUpdate,
@@ -11,21 +11,27 @@ import {
 import { Action } from 'shared/ReactTypes';
 import { scheduleUpdateOnFiber } from './workLoop';
 
+/**
+ * hook如何知道自己的数据会保存到哪里？
+ * currentlyRenderingFiber变量，用于记录当前render的FC对应的fiberNode,在fiberNode中保存hook数据
+ */
 let currentlyRenderingFiber: FiberNode | null = null;
-let workInProgressHook: Hook | null = null;
+let workInProgressHook: Hook | null = null; // 指向当前正在处理的hook, 类似于workInProgeress
 let currentHook: Hook | null = null;
 
-const { currentDispatcher } = internals;
+const { currentDispatcher } = internals; // 解构
 
 // 链表，数据结构格式不能变，否则获取的数据就不是原来的数据
 interface Hook {
-	memoizedState: any;
-	updateQueue: unknown;
-	next: Hook | null;
+	// 存储的是所有的hook共享该接口，useState, useEffect，所以要比较抽象
+	memoizedState: any; // 保存hook自身状态值
+	updateQueue: unknown; // 触发更新
+	next: Hook | null; // 指向下一个hook
 }
+
+// 处理函数组件（functionComponent)
 export function renderWidthHooks(wip: FiberNode) {
-	// 赋值操作
-	currentlyRenderingFiber = wip;
+	currentlyRenderingFiber = wip; // 赋值操作
 	// 重置
 	wip.memoizedState = null;
 
@@ -39,11 +45,11 @@ export function renderWidthHooks(wip: FiberNode) {
 		currentDispatcher.current = HooksDispatcherOnMount;
 	}
 
-	const Component = wip.type;
+	const Component = wip.type; // 函数组件就是type()
 	const props = wip.pendingProps;
 	const children = Component(props);
-	// 重置操作
-	currentlyRenderingFiber = null;
+
+	currentlyRenderingFiber = null; // 重置操作
 	workInProgressHook = null;
 	currentHook = null;
 	return children;
@@ -74,7 +80,7 @@ function mountState<State>(
 	hook.updateQueue = queue;
 	hook.memoizedState = memoizedState;
 	// @ts-ignore
-	const dispatch = dispatchSetState.bind(null, currentlyRenderingFiber, queue);
+	const dispatch = dispatchSetState.bind(null, currentlyRenderingFiber, queue); // dispatchSetState已经保存对应的fiber节点
 	queue.dispatch = dispatch;
 	return [memoizedState, dispatch];
 }
@@ -99,11 +105,17 @@ function dispatchSetState<State>(
 	updateQueue: UpdateQueue<State>,
 	action: Action<State>
 ) {
-	const update = createUpdate(action);
+	const update = createUpdate(action); // 创建update
 	enqueUpdate(updateQueue, update);
-	scheduleUpdateOnFiber(fiber);
+	scheduleUpdateOnFiber(fiber); // 从fiber开始调度更新
 }
 
+/**
+ * 这里实现的就是hook链表那一部分；
+ * fiberNode的memoizedState存储Hook链表，指向hook第一个；
+ * 设置一个workInProgressHook存储当前指向的Hook
+ * @returns
+ */
 function mountWorkInProgressHook(): Hook {
 	const hook: Hook = {
 		memoizedState: null,

@@ -23,4 +23,5 @@ jsx 转换包括两部分
      命令见主目录下的 package.json 的命令语句：`npm run build:dev`
       rimraf 是为了兼容 window 系统，如果是 mac 系统可以直接 `rm -rf dist` 用于清除 dist 目录；`--bundleConfigAsCjs` 是因为 rollup 支持的是 commonjs，该命令可以将 es 代码转为 commonjs 实现打包
     ```
+    ![打包流程](./images/build-jsx-by-react.jpg)
   - 实现调试打包结果的环境

@@ -1,5 +1,5 @@
 import { Action } from 'shared/ReactTypes';
-
+// 数据共享层（当前使用的hooks的集合）
 export interface Dispatcher {
 	// 存放所有hooks
 	useState: <T>(initialState: (() => T) | T) => [T, Dispatch<T>];

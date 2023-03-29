@@ -9,6 +9,12 @@ import { ChildDeletion, Placement } from './fiberFlags';
 import { HostText } from './workTags';
 
 type ExistingChildren = Map<string | number, FiberNode>;
+
+/**
+ * 生成子节点，标记flags
+ * @param shouldTrackEffects  // 是否应该追踪副作用
+ * @returns
+ */
 function ChildReconciler(shouldTrackEffects: boolean) {
 	function deleteChild(returnFiber: FiberNode, childToDelete: FiberNode) {
 		if (!shouldTrackEffects) {
@@ -38,6 +44,7 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 		}
 	}
 	function reconcileSingleElement(
+		// 根据element创建fiber,再返回
 		returnFiber: FiberNode,
 		currentFiber: FiberNode | null,
 		element: ReactElementType
@@ -80,7 +87,7 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 	function reconcileSingleTextNode(
 		returnFiber: FiberNode,
 		currentFiber: FiberNode | null,
-		content: string | number
+		content: string | number // 文本节点
 	) {
 		while (currentFiber !== null) {
 			// update
@@ -99,8 +106,11 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 		return fiber;
 	}
 
+	// 插入单一节点
 	function placeSingleChild(fiber: FiberNode) {
+		// 首屏渲染
 		if (shouldTrackEffects && fiber.alternate === null) {
+			// fiber.alternate === null 意味着current 不存在
 			fiber.flags |= Placement;
 		}
 		return fiber;
@@ -232,7 +242,7 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 		// HostText
 		if (typeof newChild === 'string' || typeof newChild === 'number') {
 			return placeSingleChild(
-				reconcileSingleElement(returnFiber, currentFiber, newChild)
+				reconcileSingleTextNode(returnFiber, currentFiber, newChild)
 			);
 		}
 		if (currentFiber !== null) {
@@ -254,5 +264,5 @@ function useFiber(fiber: FiberNode, pendingProps: Props): FiberNode {
 	clone.sibling = null;
 	return clone;
 }
-export const reconcileChildFibers = ChildReconciler(true);
-export const mountChildFibers = ChildReconciler(false);
+export const reconcileChildFibers = ChildReconciler(true); // 追踪副作用
+export const mountChildFibers = ChildReconciler(false); // 不追踪副作用

@@ -40,30 +40,7 @@ export default [
 			}
 		],
 		// 对于react-dom来说的外部包是可以不用打包进入reactDOM包的
-		external: [
-			...Object.keys(peerDependencies) // 该包不会打包进入react-dom, 则两者可以共用一个共享层
-		],
-		plugins: [
-			...getBaseRollupPlugins(),
-			// webpack resolve alias
-			alias({
-				entries: {
-					hostConfig: `${pkgPath}/src/hostConfig.ts`
-				}
-			}),
-			generatePackageJson({
-				inputFolder: pkgPath,
-				outputFolder: pkgDistPath,
-				baseContents: ({ name, description, version }) => ({
-					name,
-					description,
-					version,
-					peerDependencies: {
-						react: version
-					},
-					main: 'index.js'
-				})
-			})
-		]
+		external: ['react-dom', 'react'],
+		plugins: getBaseRollupPlugins()
 	}
 ];

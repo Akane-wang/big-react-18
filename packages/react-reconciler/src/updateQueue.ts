@@ -9,24 +9,27 @@ export interface UpdateQueue<State> {
 	shared: {
 		pending: Update<State> | null;
 	};
-	dispatch: Dispatch<State> | null;
+	dispatch: Dispatch<State> | null; // 用于保存hooks的dispatch
 }
 
+// 创建update的实例
 export const createUpdate = <State>(action: Action<State>): Update<State> => {
 	return {
 		action
 	};
 };
 
-export const createUpdateQueue = <State>() => {
+// 创建updateQueue的实例
+export const createUpdateQueue = <State>(): UpdateQueue<State> => {
 	return {
 		shared: {
 			pending: null
 		},
 		dispatch: null
-	} as UpdateQueue<State>;
+	};
 };
 
+// 新增update到updateQueue的方法
 export const enqueUpdate = <State>(
 	updateQueue: UpdateQueue<State>,
 	update: Update<State>
@@ -35,8 +38,8 @@ export const enqueUpdate = <State>(
 };
 
 export const processUpdateQueue = <State>(
-	baseState: State,
-	pendingUpdate: Update<State> | null
+	baseState: State, // 初始的状态
+	pendingUpdate: Update<State> | null // 要消费的update
 ): { memoizedState: State } => {
 	const result: ReturnType<typeof processUpdateQueue<State>> = {
 		memoizedState: baseState

@@ -1,3 +1,4 @@
+// 描述宿主环境的方法
 import { FiberNode } from 'react-reconciler/src/fiber';
 import { HostText } from 'react-reconciler/src/workTags';
 import { Props } from 'shared/ReactTypes';
@@ -9,7 +10,7 @@ export type TextInstance = Text;
 export const createInstance = (type: string, props: Props): Instance => {
 	// TODO: 处理props
 	const element = document.createElement(type) as unknown;
-	updateFiberProps(element as DOMElement, props);
+	updateFiberProps(element as DOMElement, props); // 把element对象下的_props属性设置值为props
 	return element as DOMElement;
 };
 
@@ -21,6 +22,7 @@ export const appendInitialChild = (
 };
 
 export const createTextInstance = (content: string) => {
+	// 返回的是一个content的文本节点字符串（文本节点）
 	return document.createTextNode(content);
 };
 

@@ -28,7 +28,7 @@ export function getPackageJSON(pakName) {
 export function getBaseRollupPlugins({
 	alias = {
 		__DEV__: true,
-		preventAssignment: true
+		preventAssignment: true // 下一个版本会默认设置为true
 	},
 	typescript = {}
 } = {}) {
