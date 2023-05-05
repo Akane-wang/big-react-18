@@ -33,7 +33,7 @@ interface Hook {
 export function renderWidthHooks(wip: FiberNode) {
 	currentlyRenderingFiber = wip; // 赋值操作
 	// 重置
-	wip.memoizedState = null;
+	wip.memoizedState = null; // memoizedState保存hooks的链表
 
 	const current = wip.alternate;
 
@@ -47,9 +47,10 @@ export function renderWidthHooks(wip: FiberNode) {
 
 	const Component = wip.type; // 函数组件就是type()
 	const props = wip.pendingProps;
-	const children = Component(props);
+	const children = Component(props); // FC render；我觉得这里应该是因为内部处理了jsx,createElement那个操作，babel处理的
 
-	currentlyRenderingFiber = null; // 重置操作
+	// 重置操作 ↓
+	currentlyRenderingFiber = null;
 	workInProgressHook = null;
 	currentHook = null;
 	return children;
@@ -90,11 +91,11 @@ function updateState<State>(): [State, Dispatch<State>] {
 	const hook = updateWorkInProgressHook();
 
 	// 实现updateState中计算新的state的逻辑
-	const queue = hook.updateQueue as UpdateQueue<State>;
+	const queue = hook.updateQueue as UpdateQueue<State>; // 依据保存在queue里
 	const pending = queue.shared.pending;
 
 	if (pending !== null) {
-		const { memoizedState } = processUpdateQueue(hook.memoizedState, pending);
+		const { memoizedState } = processUpdateQueue(hook.memoizedState, pending); // memoizedState保存其hook状态
 		hook.memoizedState = memoizedState;
 	}
 	return [hook.memoizedState, queue.dispatch as Dispatch<State>];
@@ -140,10 +141,10 @@ function mountWorkInProgressHook(): Hook {
 
 function updateWorkInProgressHook(): Hook {
 	// TODO：render阶段触发的更新
-	// hooks数据从哪儿来？=> 从current数据中来
+	// hooks数据从哪儿来？=> 从currentHook数据中来
 	// 交互阶段触发更新
 	// render阶段触发更新
-	let nextCurrentHook: Hook | null;
+	let nextCurrentHook: Hook | null; // 用来保存下一个hook
 	if (currentHook === null) {
 		// 这是这个FC update时的第一个hook
 		const current = currentlyRenderingFiber?.alternate;

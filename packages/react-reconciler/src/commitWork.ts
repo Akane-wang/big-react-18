@@ -59,7 +59,7 @@ const commitMutationEffectsOnFiber = (finishedWork: FiberNode) => {
 	}
 	// flags update
 	if ((flags && Update) !== NoFlags) {
-		commitUpdate(finishedWork);
+		commitUpdate(finishedWork); // 更新text
 		finishedWork.flags &= ~Update;
 	}
 	// flags childDeletion
@@ -74,6 +74,14 @@ const commitMutationEffectsOnFiber = (finishedWork: FiberNode) => {
 	}
 };
 
+/**
+ * 递归子树操作
+ * 1.对不同类型的组件进行递归处理
+ * 1.1 FC：需要处理useEffect, unmount执行，解绑ref
+ * 1.2 hostComponent: 需要解绑ref
+ * 1.3 对于子树的根HostComponent: 需要移除DOM
+ * @param childToDelete
+ */
 function commitDeletion(childToDelete: FiberNode) {
 	let rootHostNode: FiberNode | null = null;
 	// 递归子树
@@ -90,6 +98,7 @@ function commitDeletion(childToDelete: FiberNode) {
 					rootHostNode = unmountFiber;
 				}
 				return;
+			// case ClassComponent: 会调用componentWillUnmout的钩子
 			case FunctionComponent:
 				// TODO：useEffect Unmount处理， 解绑ref
 				return;
@@ -101,15 +110,17 @@ function commitDeletion(childToDelete: FiberNode) {
 	});
 	// 移除rootHostComponent的DOM的操作
 	if (rootHostNode !== null) {
-		const hostParent = getHostParent(childToDelete);
+		const hostParent = getHostParent(childToDelete); // 找到当前要被删除节点的父级
 		if (hostParent !== null) {
 			removeChild((rootHostNode as FiberNode).stateNode, hostParent);
 		}
 	}
+	// 移除后指向为空是为了垃圾回收
 	childToDelete.return = null;
 	childToDelete.child = null;
 }
 
+// 递归子树
 function commitNestedComponent(
 	root: FiberNode,
 	onCommitUnmount: (fiber: FiberNode) => void
@@ -127,6 +138,7 @@ function commitNestedComponent(
 			// 终止条件
 			return;
 		}
+		// 兄弟节点
 		while (node.sibling === null) {
 			if (node.return === null || node.return === root) {
 				return;

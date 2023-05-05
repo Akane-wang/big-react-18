@@ -23,23 +23,27 @@ import { updateFiberProps } from 'react-dom/src/SyntheticEvent';
 
 // 标记更新
 function markUpdate(fiber: FiberNode) {
-	fiber.flags |= Update;
+	fiber.flags |= Update; // 按位或
 }
 export const complateWork = (wip: FiberNode) => {
 	// 递归中的回溯阶段
 	const newProps = wip.pendingProps;
 	const current = wip.alternate;
+	// 1.根据wip.tag进入不同的处理分支
 	switch (wip.tag) {
 		case HostComponent:
+			// 2.根据current !== null 区分mount和update流程
 			if (current !== null && wip.stateNode) {
-				// stateNode保存的是DOM节点
 				// update
+				// stateNode保存的是DOM节点
 				// 1. props属性是否变化如className, style, {onClick: xx} => {onClick: xxx}
 				// 2.变了Update flag
 				updateFiberProps(wip.stateNode, newProps);
 			} else {
 				// mount
 				// 1.构建dom
+				console.log('嘿嘿嘿？？？来过？');
+
 				const instance = createInstance(wip.type, newProps); // 创建拿到一个DOM节点
 				// 2.将dom插入到dom树中
 				appendAllChildren(instance, wip);
@@ -116,7 +120,7 @@ function bubbleProperties(wip: FiberNode) {
 	while (child !== null) {
 		subtreeFlags |= child.subtreeFlags; // 按位或
 		subtreeFlags |= child.flags;
-		// 处理遍历对象
+		// 处理遍历对象(通过这种操作遍历当前wip节点的child的兄弟节点；处理一层，到没有兄弟节点，这一层就结束了)
 		child.return = wip;
 		child = child.sibling;
 	}

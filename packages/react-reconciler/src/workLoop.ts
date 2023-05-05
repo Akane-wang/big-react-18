@@ -13,27 +13,27 @@ function prepareFreshStack(root: FiberRootNode) {
 
 // 在fiber中调度update
 export function scheduleUpdateOnFiber(fiber: FiberNode) {
-	const root = markUpdateFromFiberToRoot(fiber); // 拿到根节点
+	const root = markUpdateFromFiberToRoot(fiber); // 拿到fiberRootNode
 	renderRoot(root); // 从根节点开始更新
 }
 
 // 接受fiberNode, 找到根节点RootFiberNode并返回
 function markUpdateFromFiberToRoot(fiber: FiberNode) {
 	let node = fiber;
-	let parent = node.return;
+	let parent = node.return; // 进来如果是hostRootFiber, 没有return且tag=hostRoot;
 	while (parent !== null) {
 		node = parent;
 		parent = node.return;
 	}
 	if ((node.tag = HostRoot)) {
-		return node.stateNode; // 格式参考（docs/images/rootFiberNode-fiberNode-指向关系.jpg）
+		return node.stateNode; // 里面有一个stateNode指向fiberRootNode(从new fiberRootNode()来的) // 格式参考（docs/images/rootFiberNode-fiberNode-指向关系.jpg）
 	}
 	return null;
 }
 
 function renderRoot(root: FiberRootNode) {
 	// 初始化
-	prepareFreshStack(root);
+	prepareFreshStack(root); // mount时创建一棵wip树，设置alternate指向fiberRootNode的current
 	do {
 		try {
 			workLoop();
@@ -83,7 +83,9 @@ function commitRoot(root: FiberRootNode) {
 	}
 }
 function workLoop() {
+	// shouldYield() 是否可中断=> 判断render阶段是同步(performSyncWorkOnRoot)还是并发更新流程(performConcurrentWorkOnRoot)
 	while (workInProgress !== null) {
+		// 从hostRootFiber开始往下wip = hostRootFiber
 		performUnitOfWork(workInProgress);
 	}
 }
@@ -102,11 +104,11 @@ function performUnitOfWork(fiber: FiberNode) {
 function complateUnitOfWork(fiber: FiberNode) {
 	let node: FiberNode | null = fiber;
 	do {
-		complateWork(node);
+		complateWork(node); // 把node的child创造成dom节点，然后贴到node上，最后把flag和subFlags冒泡到当前FiberNode
 		const sibling = node.sibling;
 
 		if (sibling !== null) {
-			workInProgress = sibling;
+			workInProgress = sibling; // 中断complateWork, 继续workLoop的beginWork
 			return;
 		}
 		node = node.return;

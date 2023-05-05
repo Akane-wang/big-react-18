@@ -7,7 +7,12 @@ function App() {
 	// 		<Child />
 	// 	</div>
 	// );
-	return <div onClick={() => setNum(num + 1)}>{num}</div>;
+	window.setNum = setNum;
+	return num === 3 ? (
+		<Child />
+	) : (
+		<div onClick={() => setNum(num + 1)}>{num}</div>
+	);
 }
 
 function Child() {
@@ -22,6 +27,6 @@ const jsx = (
 	</div>
 );
 console.log(jsx);
-console.log(React);
+// console.log(React);
 const root = document.getElementById('root') as HTMLElement;
 ReactDOM.createRoot(root).render(<App />);

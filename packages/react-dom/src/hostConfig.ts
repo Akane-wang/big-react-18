@@ -6,7 +6,7 @@ import { DOMElement, updateFiberProps } from './SyntheticEvent';
 
 export type Container = Element;
 export type Instance = Element;
-export type TextInstance = Text;
+export type TextInstance = Text; // 文本实例
 export const createInstance = (type: string, props: Props): Instance => {
 	// TODO: 处理props
 	const element = document.createElement(type) as unknown;
@@ -32,7 +32,7 @@ export function commitUpdate(fiber: FiberNode) {
 	switch (fiber.tag) {
 		case HostText:
 			const text = fiber.memoizedProps.content;
-			return commitTextUpdate(fiber.stateNode, text);
+			return commitTextUpdate(fiber.stateNode, text); // 如果hostText的文本变了，就改变文本内容
 		default:
 			if (__DEV__) {
 				console.warn('未实现的UPdate类型', fiber);
